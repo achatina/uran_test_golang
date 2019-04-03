@@ -14,7 +14,7 @@ func Get() *gorm.DB {
 
 func Open() {
 	var err error
-	db, err = gorm.Open("mysql", "root:password@/db")
+	db, err = gorm.Open("mysql", "root:Nikito4ka@/uran")
 
 	if err != nil {
 		log.Fatal(err)

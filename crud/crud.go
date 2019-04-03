@@ -19,23 +19,42 @@ func GetProducts(q string) ([]Product, error) {
 
 	products := make([]Product, len(p))
 
+	pIds := make([]int, 0)
+	cIds := make([]int, 0)
+
 	for _, prod := range p {
-		c, err := getCategoryById(prod.CategoryId)
-		if err != nil {
-			return nil, err
+		if !contains(pIds, prod.ProductTypeId) {
+			pIds = append(pIds, prod.ProductTypeId)
 		}
-		pType, err := getProductTypeById(prod.ProductTypeId)
-		if err != nil {
-			return nil, err
+		if !contains(cIds, prod.CategoryId) {
+			cIds = append(cIds, prod.ProductTypeId)
 		}
-		products = append(products, Product{
+	}
+	pTypes, err := getProductTypes(pIds)
+
+	if err != nil {
+		return nil, err
+	}
+
+	categories, err := getCategories(cIds)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i, prod := range p {
+		c := findCategory(categories, prod.CategoryId)
+
+		pType := findProductTypes(pTypes, prod.ProductTypeId)
+
+		products[i] = Product{
 			Id:          prod.Id,
 			ProductType: *pType,
 			Category:    *c,
 			Name:        prod.Name,
 			Description: prod.Description,
 			Image:       prod.Image,
-		})
+		}
 
 	}
 
@@ -73,6 +92,17 @@ func getCategories(ids []int) ([]Category, error) {
 	}
 
 	return c, nil
+}
+
+func getProductTypes(ids []int) ([]ProductType, error) {
+	db := mysql.Get()
+	var p []ProductType
+
+	if err := db.Table(productType).Where("id IN (?)", ids).Find(&p).Error; err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func getProductTypeById(id int) (*ProductType, error) {
@@ -184,4 +214,33 @@ func AddProduct(p Product) (*Product, error) {
 		Description: prod.Description,
 		Image:       prod.Image,
 	}, nil
+}
+
+func contains(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func findCategory(s []Category, id int) *Category {
+	for _, c := range s {
+		if c.Id == id {
+			return &c
+		}
+	}
+
+	return nil
+}
+
+func findProductTypes(s []ProductType, id int) *ProductType {
+	for _, p := range s {
+		if p.Id == id {
+			return &p
+		}
+	}
+
+	return nil
 }
