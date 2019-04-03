@@ -11,12 +11,13 @@ const product = "product"
 func GetProducts(q string) ([]Product, error) {
 	db := mysql.Get()
 
-	var p []ProductDb
-	var products []Product
+	var p []DbProduct
 
-	if err := db.Table(product).Find(&p, "name LIKE ?", "%" + q + "%").Error; err != nil {
+	if err := db.Table(product).Find(&p, "name LIKE ?", "%"+q+"%").Error; err != nil {
 		return nil, err
 	}
+
+	products := make([]Product, len(p))
 
 	for _, prod := range p {
 		c, err := getCategoryById(prod.CategoryId)
@@ -41,9 +42,9 @@ func GetProducts(q string) ([]Product, error) {
 	return products, nil
 }
 
-func getProductDbById(id int) (*ProductDb, error) {
+func getDbProductById(id int) (*DbProduct, error) {
 	db := mysql.Get()
-	var p ProductDb
+	var p DbProduct
 
 	if err := db.Table(product).First(&p, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -63,6 +64,17 @@ func getCategoryById(id int) (*Category, error) {
 	return &c, nil
 }
 
+func getCategories(ids []int) ([]Category, error) {
+	db := mysql.Get()
+	var c []Category
+
+	if err := db.Table(category).Where("id IN (?)", ids).Find(&c).Error; err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func getProductTypeById(id int) (*ProductType, error) {
 	db := mysql.Get()
 	var pType ProductType
@@ -75,7 +87,7 @@ func getProductTypeById(id int) (*ProductType, error) {
 }
 
 func GetProductById(id int) (*Product, error) {
-	p, err := getProductDbById(id)
+	p, err := getDbProductById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +114,7 @@ func GetProductById(id int) (*Product, error) {
 
 func EditProductImage(id int, url string) (*Product, error) {
 
-	p, err := getProductDbById(id)
+	p, err := getDbProductById(id)
 
 	if err != nil {
 		return nil, err
@@ -115,7 +127,7 @@ func EditProductImage(id int, url string) (*Product, error) {
 
 func EditProduct(newP Product) (*Product, error) {
 
-	p, err := getProductDbById(newP.Id)
+	p, err := getDbProductById(newP.Id)
 
 	if err != nil {
 		return nil, err
@@ -129,7 +141,7 @@ func EditProduct(newP Product) (*Product, error) {
 	return updateProduct(*p)
 }
 
-func updateProduct(p ProductDb) (*Product, error) {
+func updateProduct(p DbProduct) (*Product, error) {
 	db := mysql.Get()
 	if err := db.Table(product).Save(&p).Error; err != nil {
 		return nil, err
@@ -152,7 +164,7 @@ func AddProduct(p Product) (*Product, error) {
 		return nil, err
 	}
 
-	prod := ProductDb{
+	prod := DbProduct{
 		ProductTypeId: prodType.Id,
 		CategoryId:    c.Id,
 		Name:          p.Name,

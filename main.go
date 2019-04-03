@@ -50,17 +50,6 @@ func response(body interface{}) gin.H {
 	}
 }
 
-func getProductsList(c *gin.Context) {
-	p, err := crud.GetProducts("")
-
-	if err != nil {
-		respondWithError(c, crud.CreateError(consts.CodeDbError, consts.MessageErrorGettingProducts))
-		return
-	}
-
-	c.JSON(consts.CodeSuccess, response(p))
-}
-
 func searchProductsList(c *gin.Context) {
 	q := c.Query("q")
 	p, err := crud.GetProducts(q)
@@ -111,7 +100,7 @@ func updateProductImage(c *gin.Context) {
 
 	img, _, err := c.Request.FormFile("image")
 
-	out, err := os.Create("./images/"+ "product_" + idS +".png")
+	out, err := os.Create("./images/" + "product_" + idS + ".png")
 	defer out.Close()
 
 	if err != nil {
@@ -125,7 +114,7 @@ func updateProductImage(c *gin.Context) {
 		return
 	}
 
-	p, err := crud.EditProductImage(id, consts.URL + "images/"+ "product_" +idS+".png")
+	p, err := crud.EditProductImage(id, consts.URL+"images/"+"product_"+idS+".png")
 
 	if err != nil {
 		respondWithError(c, crud.CreateError(consts.CodeDbError, consts.MessageErrorGettingProduct))

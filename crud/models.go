@@ -15,7 +15,7 @@ type Category struct {
 	Name string `gorm:"column:name" json:"name"`
 }
 
-type ProductDb struct {
+type DbProduct struct {
 	Id            int    `gorm:"column:id"`
 	ProductTypeId int    `gorm:"column:product_type_id"`
 	CategoryId    int    `gorm:"column:category_id"`
